@@ -1,61 +1,60 @@
 #!/bin/bash
 
+# 1. Entra na pasta temporária (a única que permite rodar scripts no ChromeOS)
+cd /tmp
+
 clear
 echo "======================================================="
-echo " COMBO CLOUD: UEFI MrChromebox + Logo Customizada"
+echo " COMBO CHROMEOS: UEFI MrChromebox + Logo Customizada"
 echo "======================================================="
-echo "PASSO 1: Vamos rodar o utilitário do MrChromebox."
-echo "-> Escolha a opção 'Install/Update UEFI (Full ROM)'."
-echo "-> Siga os passos normalmente."
-echo "-> IMPORTANTE: Quando perguntar se deseja reiniciar (Reboot), escolha NÃO (N)."
+echo "AVISO IMPORTANTE NO MENU DO MRCHROMEBOX:"
+echo "-> Escolha 'Install/Update UEFI (Full ROM)'."
+echo "-> Quando perguntar se deseja reiniciar (Reboot), digite 'N' (Não)."
 echo "-> Depois, digite 'Q' para sair do menu dele."
 echo "======================================================="
 read -p "Pressione [ENTER] para abrir o menu e começar..."
 
-# 1. Chama o script oficial do MrChromebox
-cd ~; curl -LO mrchromebox.tech/firmware-util.sh
+# 2. Chama o script original do MrChromebox
+curl -sLO mrchromebox.tech/firmware-util.sh
 sudo bash firmware-util.sh
 
-# O script continua aqui após você sair do MrChromebox
+# O script continua aqui após você sair do menu do MrChromebox
 clear
 echo "======================================================="
 echo "PASSO 2: Iniciando a troca da logo..."
 echo "======================================================="
 
-# 2. Baixa a SUA logo direto do GitHub (COLE O SEU LINK RAW ABAIXO)
-LINK_LOGO="https://raw.githubusercontent.com/gabrielsweitzmann/chromeosflex/main/meulogo.bmp"
+# 3. Baixa a SUA logo direto do GitHub (COLE O SEU LINK RAW ABAIXO)
+LINK_DA_SUA_LOGO="https://raw.githubusercontent.com/gabrielsweitzmann/chromeosflex/main/meulogo.bmp"
 
-echo "[1/5] Baixando a sua imagem do GitHub..."
-wget -q $LINK_LOGO -O meulogo.bmp
+echo "[1/4] Baixando a sua imagem do GitHub..."
+curl -sL "$LINK_DA_SUA_LOGO" -o meulogo.bmp
 
 if [ ! -f "meulogo.bmp" ]; then
-    echo "ERRO: Não foi possível baixar a imagem. Verifique se o link Raw está correto no script!"
+    echo "ERRO: Não foi possível baixar a imagem. Verifique o link RAW no script!"
     exit 1
 fi
 
-echo "[2/5] Instalando dependências e ferramentas..."
-sudo apt-get update > /dev/null 2>&1
-sudo apt-get install flashrom -y > /dev/null 2>&1
-wget -q https://mrchromebox.tech/files/util/cbfstool.tar.gz
+echo "[2/4] Baixando a ferramenta cbfstool..."
+# Usando curl ao invés de wget para garantir compatibilidade no ChromeOS
+curl -sL https://mrchromebox.tech/files/util/cbfstool.tar.gz -o cbfstool.tar.gz
 tar -zxf cbfstool.tar.gz
 chmod +x cbfstool
 
-echo "[3/5] Lendo a BIOS instalada..."
-sudo flashrom -p internal -r uefi_original.rom > /dev/null 2>&1
-cp uefi_original.rom uefi_modificada.rom
+echo "[3/4] Lendo a nova BIOS e injetando a sua arte..."
+# O ChromeOS já tem o flashrom embutido, então usamos o nativo
+sudo flashrom -p internal -r uefi_modificada.rom > /dev/null 2>&1
 
-echo "[4/5] Injetando a arte..."
 ./cbfstool uefi_modificada.rom remove -n bootsplash.bmp > /dev/null 2>&1
 ./cbfstool uefi_modificada.rom add -f meulogo.bmp -n bootsplash.bmp -t raw
 
-echo "[5/5] Gravando BIOS final. NÃO DESLIGUE O PC..."
+echo "[4/4] Gravando a BIOS customizada na placa-mãe. NÃO DESLIGUE O PC..."
 sudo flashrom -p internal -w uefi_modificada.rom
 
-echo "Limpando a bagunça..."
-rm cbfstool cbfstool.tar.gz uefi_modificada.rom meulogo.bmp
+echo "Limpando os arquivos temporários..."
+rm cbfstool cbfstool.tar.gz uefi_modificada.rom meulogo.bmp firmware-util.sh
 
 echo "======================================================="
 echo "TUDO PRONTO! PROCESSO FINALIZADO!"
-echo "O arquivo 'uefi_original.rom' ficou salvo na sua pasta atual como backup."
-echo "Pode fechar tudo e reiniciar o Chromebook!"
+echo "Sua logo foi gravada com sucesso. Já pode reiniciar o Chromebook!"
 echo "======================================================="
