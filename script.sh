@@ -1,6 +1,3 @@
-#!/bin/bash
-
-# 1. Entra na pasta temporária (a única que permite rodar scripts no ChromeOS)
 cd /tmp
 
 clear
