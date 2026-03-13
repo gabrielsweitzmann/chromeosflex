@@ -42,8 +42,8 @@ echo "[3/4] Lendo a nova BIOS e injetando a sua arte..."
 # O ChromeOS já tem o flashrom embutido, então usamos o nativo
 sudo flashrom -p internal -r uefi_modificada.rom > /dev/null 2>&1
 
-./cbfstool uefi_modificada.rom remove -n bootsplash.bmp > /dev/null 2>&1
-./cbfstool uefi_modificada.rom add -f meulogo.bmp -n bootsplash.bmp -t raw
+./cbfstool uefi_modificada.rom remove -n logo.bmp > /dev/null 2>&1
+./cbfstool uefi_modificada.rom add -f meulogo.bmp -n logo.bmp -t raw
 
 echo "[4/4] Gravando a BIOS customizada na placa-mãe. NÃO DESLIGUE O PC..."
 sudo flashrom -p internal -w uefi_modificada.rom
